@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+  crossorigin="anonymous"
+/>
+
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+  crossorigin="anonymous"
+/>
+
+<title>{% block title %}Home{% endblock %}</title>
+
+</head>
+
+<body> <nav class="navbar navbar-expand-lg navbar-dark bg-dark"> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" > <span class="navbar-toggler-icon"></span> </button>
+
+  <div class="collapse navbar-collapse" id="navbar">
+    <div class="navbar-nav">
+      {% if user.is_authenticated %}
+     <a class="nav-item nav-link" id="home" href="/">Home</a>
+      <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
+      <a class="nav-item nav-link" id="events" href="/events">Events</a>
+      <a class="nav-item nav-link" id="volunteers" href="/volunteers">Volunteers</a>
+      {% else %}
+<a class="nav-item nav-link" id="login" href="/login">Login</a>
+<a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a>
+
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% if category == 'error' %}
+      <div class="alert alert-danger alert-dismissable fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% else %}
+      <div class="alert alert-success alert-dismissable fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="container">
+  {% block content %}
+  {% endblock %}
+</div>
+
+<script
+  src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+  crossorigin="anonymous"
+></script>
+
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+  integrity="sha384-ApNbgh9B+Y1QKtv3RnW7MgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+  crossorigin="anonymous"
+></script>
+
+<script
+  src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+  integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+  crossorigin="anonymous"
+></script>
+
+{% block javascript %}
+<script type="text/javascript">
+  function deleteNote(noteId) {
+    fetch("/delete-note", {
+      method: "POST",
+      body: JSON.stringify({ noteId: noteId }),
+    }).then((_res) => {
+      window.location.href = "/";
+    });
+  }
+</script>
+{% endblock %}
+
+<style>
+  #ai-chat-toggle {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 20px;
+    background: #176b52;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px #0003;
+    cursor: pointer;
+  }
+
+  #ai-chat-box {
+    display: none;
+    position: fixed;
+    right: 24px;
+    bottom: 85px;
+    width: min(350px, calc(100vw - 32px));
+    height: 430px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px #0003;
+    z-index: 1001;
+    overflow: hidden;
+    flex-direction: column;
+  }
+
+  #ai-chat-header {
+    background: #176b52;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #ai-chat-messages {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    background: #f8fafc;
+  }
+
+  .ai-chat-message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .ai-chat-bot {
+    background: #e5f5ed;
+  }
+
+  .ai-chat-user {
+    background: #dbeafe;
+    text-align: right;
+  }
+
+  #ai-chat-form {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+
+  #ai-chat-input {
+    width: 0;
+    min-width: 0;
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  #ai-chat-form button {
+    background: #176b52;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+  }
+</style>
+
+<button id="ai-chat-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="ai-chat-box">
+  💬 Ask AI
+</button>
+
+<div id="ai-chat-box" role="dialog" aria-label="AI assistant">
+  <div id="ai-chat-header">
+    <span>Juanbot</span>
+    <button id="ai-chat-close" type="button"
+            aria-label="Close chat">✕</button>
+  </div>
+
+  <div id="ai-chat-messages" aria-live="polite">
+    <div class="ai-chat-message ai-chat-bot">
+      Hi! I'm Juanbot, your (nonprofit name) AI assistant. How can I help?
+    </div>
+  </div>
+
+  <form id="ai-chat-form">
+    <input id="ai-chat-input" type="text"
+           placeholder="Ask a question..."
+           maxlength="4000" required
+           aria-label="Your question">
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  const toggle = document.getElementById("ai-chat-toggle");
+  const box = document.getElementById("ai-chat-box");
+  const close = document.getElementById("ai-chat-close");
+  const form = document.getElementById("ai-chat-form");
+  const input = document.getElementById("ai-chat-input");
+  const messages = document.getElementById("ai-chat-messages");
+
+  function setChatOpen(open) {
+    box.style.display = open ? "flex" : "none";
+    toggle.setAttribute("aria-expanded", String(open));
+    if (open) input.focus();
+  }
+
+  toggle.addEventListener("click", () => {
+    setChatOpen(box.style.display !== "flex");
+  });
+
+  close.addEventListener("click", () => setChatOpen(false));
+
+  function addMessage(text, sender) {
+    const item = document.createElement("div");
+    item.className = "ai-chat-message ai-chat-" + sender;
+    item.textContent = text;
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+    return item;
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessage(message, "user");
+    input.value = "";
+    const reply = addMessage("Thinking...", "bot");
+    const sendButton = form.querySelector("button");
+    sendButton.disabled = true;
+
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.reply || "Request failed");
+
+      reply.textContent = data.reply || "No answer received.";
+   } catch (error) {
+    reply.textContent =
+        error.message || "Something went wrong. Check the PyCharm terminal.";
+    console.error("Chatbot error:", error);
+    } finally {
+      sendButton.disabled = false;
+      input.focus();
+    }
+  });
+})();
+</script>
+</body>
+</html>
